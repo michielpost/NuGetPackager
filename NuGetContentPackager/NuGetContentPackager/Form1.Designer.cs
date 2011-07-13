@@ -28,14 +28,15 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
-            this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.namespaceTextBox = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.saveFileDialog2 = new System.Windows.Forms.OpenFileDialog();
             this.SuspendLayout();
             // 
             // treeView1
@@ -51,8 +52,7 @@
             // 
             // openFileDialog1
             // 
-            this.openFileDialog1.FileName = "openFileDialog1";
-            this.openFileDialog1.Filter = ".csproj |*.csproj|.vbproj|*.vbproj|.nugetpp|*.nugetpp";
+            this.openFileDialog1.Filter = ".csproj |*.csproj|.vbproj|*.vbproj|.nupp|*.nupp";
             // 
             // button1
             // 
@@ -70,7 +70,7 @@
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(87, 47);
             this.button2.TabIndex = 2;
-            this.button2.Text = "Save project";
+            this.button2.Text = "Save project as XML";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
@@ -100,6 +100,10 @@
             this.label1.TabIndex = 5;
             this.label1.Text = "Root namespace:";
             // 
+            // saveFileDialog2
+            // 
+            this.saveFileDialog2.Filter = "NuGet File |*.nupkg; *.nuspec";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -111,6 +115,7 @@
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.treeView1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "NuGet Source Code Packager - Create PP files for NuGet";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -126,9 +131,9 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.TextBox namespaceTextBox;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.OpenFileDialog saveFileDialog2;
     }
 }
 

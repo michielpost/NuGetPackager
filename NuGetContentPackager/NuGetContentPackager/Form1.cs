@@ -15,15 +15,20 @@ namespace NuGetContentPackager
     {
         TreeNode _contentNode = new TreeNode("Content");
         DirectoryInfo _dirInfo;
-        string _contentFileNameTemplate = "{0}.nugetpp";
+        string _contentFileNameTemplate = "{0}.nupp";
         string _contentFileName = string.Empty;
 
         XDocument _xdoc;
 
 
-        public Form1()
+        public Form1(string[] args)
         {
             InitializeComponent();
+
+            if (args.Count() > 0)
+            {
+                LoadFile(args[0]);
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -35,13 +40,17 @@ namespace NuGetContentPackager
         {
             foreach (DirectoryInfo dir in directory.GetDirectories())
             {
-                TreeNode node = new TreeNode(dir.Name);
-               
-                node.Tag = dir;
-                PopulateContentTreeView(node, dir);
+                if (dir.Name.ToLower() != "bin"
+                    && dir.Name.ToLower() != "obj")
+                {
+                    TreeNode node = new TreeNode(dir.Name);
 
-                if(node.Nodes.Count > 0)
-                    parent.Nodes.Add(node);
+                    node.Tag = dir;
+                    PopulateContentTreeView(node, dir);
+
+                    if (node.Nodes.Count > 0)
+                        parent.Nodes.Add(node);
+                }
 
             }
 
@@ -49,14 +58,10 @@ namespace NuGetContentPackager
             {
                 TreeNode n = new TreeNode(f.Name);
                 
-                if (f.Name.ToLower().EndsWith(".cs")
-                    || f.Name.ToLower().EndsWith(".vb"))
+                if (!f.Name.ToLower().EndsWith(".dll"))
                 {
 
                     parent.Nodes.Add(n);
-
-
-                   
 
                 }
                 //(n.Tag as NugetPackageFile).PackageFile = n.FullPath;
@@ -80,32 +85,39 @@ namespace NuGetContentPackager
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                FileInfo fileInfo = new FileInfo(openFileDialog1.FileName);
-                _dirInfo = fileInfo.Directory;
-                folderBrowserDialog1.SelectedPath = _dirInfo.FullName;
+                string selectedFileName = openFileDialog1.FileName;
 
-
-                string fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-
-                namespaceTextBox.Text = fileName;
-                _contentFileName = string.Format(_contentFileNameTemplate, fileName);
-
-                string filePath = Path.Combine(_dirInfo.FullName, _contentFileName);
-                if (new FileInfo(filePath).Exists)
-                {
-                    _xdoc = XDocument.Load(filePath);
-
-                    namespaceTextBox.Text = _xdoc.Element("nugetpp").Element("namespace").Value;
-                }
-
-                treeView1.Nodes.Add(_contentNode);
-
-                PopulateContentTreeView(_contentNode, _dirInfo);
-                _contentNode.Expand();
-
-                CheckNodes(_xdoc, _contentNode);
+                LoadFile(selectedFileName);
 
             }
+        }
+
+        private void LoadFile(string selectedFileName)
+        {
+            FileInfo fileInfo = new FileInfo(selectedFileName);
+            _dirInfo = fileInfo.Directory;
+            saveFileDialog2.InitialDirectory = _dirInfo.FullName;
+
+
+            string fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
+
+            namespaceTextBox.Text = fileName;
+            _contentFileName = string.Format(_contentFileNameTemplate, fileName);
+
+            string filePath = Path.Combine(_dirInfo.FullName, _contentFileName);
+            if (new FileInfo(filePath).Exists)
+            {
+                _xdoc = XDocument.Load(filePath);
+
+                namespaceTextBox.Text = _xdoc.Element("nugetpp").Element("namespace").Value;
+            }
+
+            treeView1.Nodes.Add(_contentNode);
+
+            PopulateContentTreeView(_contentNode, _dirInfo);
+            _contentNode.Expand();
+
+            CheckNodes(_xdoc, _contentNode);
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -186,8 +198,12 @@ namespace NuGetContentPackager
 
         private void button3_Click(object sender, EventArgs e)
         {
-            if (folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (saveFileDialog2.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
+                FileInfo saveInfo = new FileInfo(saveFileDialog2.FileName);
+                saveFileDialog2.InitialDirectory = saveInfo.DirectoryName;
+                string targetDir = saveInfo.DirectoryName;
+
                 List<string> paths = new List<string>();
 
                 FillPaths(paths, _contentNode);
@@ -198,7 +214,7 @@ namespace NuGetContentPackager
 
                     if (fileInfo.Exists)
                     {
-                        ProcessFile(fileInfo, filePath, folderBrowserDialog1.SelectedPath);
+                        ProcessFile(fileInfo, filePath, targetDir);
                     }
                 }
             }
@@ -206,6 +222,8 @@ namespace NuGetContentPackager
 
         private void ProcessFile(FileInfo fileInfo, string filePath, string targerPath)
         {
+            targerPath = Path.Combine(targerPath, "content");
+
             string directory = new FileInfo(Path.Combine(targerPath, filePath.Substring(1) + ".pp")).Directory.FullName;
             if (!Directory.Exists(directory))
             {
@@ -214,11 +232,20 @@ namespace NuGetContentPackager
 
             FileInfo copy = fileInfo.CopyTo(Path.Combine(targerPath, filePath.Substring(1) + ".pp"), true);
 
-            string orignal = File.ReadAllText(copy.FullName);
+            //Process code files
+            if (fileInfo.Extension == ".cs"
+                || fileInfo.Extension == ".vb"
+                || fileInfo.Extension == ".aspx"
+                || fileInfo.Extension == ".cshtml"
+                || fileInfo.Extension == ".vbhtml")
+            {
 
-            string modified = orignal.Replace(namespaceTextBox.Text, "$rootnamespace$");
+                string orignal = File.ReadAllText(copy.FullName);
 
-            File.WriteAllText(copy.FullName, modified);
+                string modified = orignal.Replace(namespaceTextBox.Text, "$rootnamespace$");
+
+                File.WriteAllText(copy.FullName, modified);
+            }
 
 
 
