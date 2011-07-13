@@ -25,9 +25,10 @@ namespace NuGetContentPackager
         {
             InitializeComponent();
 
-            if (args.Count() > 0)
+
+            if (args != null && args.Count() > 0)
             {
-                LoadFile(args[0]);
+                LoadFile(new Uri(args[0]).AbsolutePath);
             }
         }
 
