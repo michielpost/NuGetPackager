@@ -32,8 +32,8 @@
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
+            this.saveButton = new System.Windows.Forms.Button();
+            this.exportButton = new System.Windows.Forms.Button();
             this.namespaceTextBox = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.saveFileDialog2 = new System.Windows.Forms.OpenFileDialog();
@@ -62,27 +62,27 @@
             this.button1.TabIndex = 1;
             this.button1.Text = "Open project file";
             this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button1.Click += new System.EventHandler(this.openButton_Click);
             // 
-            // button2
+            // saveButton
             // 
-            this.button2.Location = new System.Drawing.Point(141, 12);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(87, 47);
-            this.button2.TabIndex = 2;
-            this.button2.Text = "Save project as XML";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.saveButton.Location = new System.Drawing.Point(141, 12);
+            this.saveButton.Name = "saveButton";
+            this.saveButton.Size = new System.Drawing.Size(87, 47);
+            this.saveButton.TabIndex = 2;
+            this.saveButton.Text = "Save project as XML";
+            this.saveButton.UseVisualStyleBackColor = true;
+            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
             // 
-            // button3
+            // exportButton
             // 
-            this.button3.Location = new System.Drawing.Point(250, 12);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(147, 47);
-            this.button3.TabIndex = 3;
-            this.button3.Text = "Process and copy to NuGet directory";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.exportButton.Location = new System.Drawing.Point(250, 12);
+            this.exportButton.Name = "exportButton";
+            this.exportButton.Size = new System.Drawing.Size(147, 47);
+            this.exportButton.TabIndex = 3;
+            this.exportButton.Text = "Process and copy to NuGet directory";
+            this.exportButton.UseVisualStyleBackColor = true;
+            this.exportButton.Click += new System.EventHandler(this.exportButton_Click);
             // 
             // namespaceTextBox
             // 
@@ -111,8 +111,8 @@
             this.ClientSize = new System.Drawing.Size(625, 606);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.namespaceTextBox);
-            this.Controls.Add(this.button3);
-            this.Controls.Add(this.button2);
+            this.Controls.Add(this.exportButton);
+            this.Controls.Add(this.saveButton);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.treeView1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -129,8 +129,8 @@
         private System.Windows.Forms.TreeView treeView1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button saveButton;
+        private System.Windows.Forms.Button exportButton;
         private System.Windows.Forms.TextBox namespaceTextBox;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.OpenFileDialog saveFileDialog2;

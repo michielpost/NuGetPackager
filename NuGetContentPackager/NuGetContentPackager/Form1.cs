@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml.Linq;
+using Packager.Services;
 
 namespace NuGetContentPackager
 {
@@ -18,7 +19,6 @@ namespace NuGetContentPackager
         string _contentFileNameTemplate = "{0}.nupp";
         string _contentFileName = string.Empty;
 
-        XDocument _xdoc;
 
 
         public Form1(string[] args)
@@ -28,45 +28,14 @@ namespace NuGetContentPackager
 
             if (args != null && args.Count() > 0)
             {
-                LoadFile(new Uri(args[0]).AbsolutePath);
+                PackageService.LoadFile(new Uri(args[0]).AbsolutePath, _contentFileNameTemplate, _contentNode);
             }
+                       
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             
-        }
-
-        private void PopulateContentTreeView(TreeNode parent, DirectoryInfo directory)
-        {
-            foreach (DirectoryInfo dir in directory.GetDirectories())
-            {
-                if (dir.Name.ToLower() != "bin"
-                    && dir.Name.ToLower() != "obj")
-                {
-                    TreeNode node = new TreeNode(dir.Name);
-
-                    node.Tag = dir;
-                    PopulateContentTreeView(node, dir);
-
-                    if (node.Nodes.Count > 0)
-                        parent.Nodes.Add(node);
-                }
-
-            }
-
-            foreach (FileInfo f in directory.GetFiles())
-            {
-                TreeNode n = new TreeNode(f.Name);
-                
-                if (!f.Name.ToLower().EndsWith(".dll"))
-                {
-
-                    parent.Nodes.Add(n);
-
-                }
-                //(n.Tag as NugetPackageFile).PackageFile = n.FullPath;
-            }
         }
 
         private void treeView1_AfterCheck(object sender, TreeViewEventArgs e)
@@ -81,51 +50,39 @@ namespace NuGetContentPackager
                 }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void openButton_Click(object sender, EventArgs e)
         {
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 string selectedFileName = openFileDialog1.FileName;
 
-                LoadFile(selectedFileName);
+                 FileInfo fileInfo = new FileInfo(selectedFileName);
+
+                 if (fileInfo.Exists)
+                 {
+                     string fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
+
+
+                     _dirInfo = fileInfo.Directory;
+                     saveFileDialog2.InitialDirectory = _dirInfo.FullName;
+                     namespaceTextBox.Text = fileName;
+                     _contentFileName = string.Format(_contentFileNameTemplate, fileName);
+                 }
+
+                 namespaceTextBox.Text = PackageService.LoadFile(selectedFileName, _contentFileNameTemplate, _contentNode);
+                treeView1.Nodes.Add(_contentNode);
+                _contentNode.Expand();
 
             }
         }
 
-        private void LoadFile(string selectedFileName)
-        {
-            FileInfo fileInfo = new FileInfo(selectedFileName);
-            _dirInfo = fileInfo.Directory;
-            saveFileDialog2.InitialDirectory = _dirInfo.FullName;
-
-
-            string fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-
-            namespaceTextBox.Text = fileName;
-            _contentFileName = string.Format(_contentFileNameTemplate, fileName);
-
-            string filePath = Path.Combine(_dirInfo.FullName, _contentFileName);
-            if (new FileInfo(filePath).Exists)
-            {
-                _xdoc = XDocument.Load(filePath);
-
-                namespaceTextBox.Text = _xdoc.Element("nugetpp").Element("namespace").Value;
-            }
-
-            treeView1.Nodes.Add(_contentNode);
-
-            PopulateContentTreeView(_contentNode, _dirInfo);
-            _contentNode.Expand();
-
-            CheckNodes(_xdoc, _contentNode);
-        }
-
-        private void button2_Click(object sender, EventArgs e)
+     
+        private void saveButton_Click(object sender, EventArgs e)
         {
             List<string> paths = new List<string>();
 
-            FillPaths(paths, _contentNode);
+            PackageService.FillPaths(paths, _contentNode);
 
             XDocument xdoc = new XDocument();
             XElement nugetpp = new XElement("nugetpp");
@@ -141,117 +98,30 @@ namespace NuGetContentPackager
             nugetpp.Add(files);
             nugetpp.Add(new XElement("namespace", namespaceTextBox.Text));
 
-            xdoc.Save(Path.Combine(_dirInfo.FullName, _contentFileName));
+            if (_dirInfo != null)
+            {
 
+                xdoc.Save(Path.Combine(_dirInfo.FullName, _contentFileName));
+            }
 
         }
 
-        private void CheckNodes(XDocument xdoc, TreeNode contentNode)
-        {
-            if (xdoc != null && xdoc.Element("nugetpp").Element("files").Elements("file").Where(x => x.Value == this.FullPath(contentNode, false)).Any())
-            {
-                contentNode.Checked = true;
+       
 
-                if(contentNode.Parent != null)
-                    contentNode.Parent.Expand();
-
-                
-            }
-            else
-            {
-            }
-
-            foreach (var n in contentNode.Nodes)
-            {
-                TreeNode node = n as TreeNode;
-                CheckNodes(xdoc, node);
-            }
-        }
-
-        private void FillPaths(List<string> paths, TreeNode contentNode)
-        {
-            if (contentNode.Checked)
-            {
-                paths.Add(FullPath(contentNode, false));
-            }
-
-            foreach (var n in contentNode.Nodes)
-            {
-                TreeNode node = n as TreeNode;
-                FillPaths(paths, node);
-            }
-        }
-
-        private string FullPath(TreeNode node, bool includeParent)
-        {
-            if (node.Parent != null)
-            {
-                return FullPath(node.Parent, includeParent) + "\\" + node.Text;
-            }
-            else
-            {
-                if (includeParent)
-                    return "\\" + node.Text;
-                else
-                    return string.Empty;
-            }
-        }
-
-        private void button3_Click(object sender, EventArgs e)
+        private void exportButton_Click(object sender, EventArgs e)
         {
             if (saveFileDialog2.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                FileInfo saveInfo = new FileInfo(saveFileDialog2.FileName);
+                string fileName = saveFileDialog2.FileName;
+
+                FileInfo saveInfo = new FileInfo(fileName);
                 saveFileDialog2.InitialDirectory = saveInfo.DirectoryName;
-                string targetDir = saveInfo.DirectoryName;
 
-                List<string> paths = new List<string>();
-
-                FillPaths(paths, _contentNode);
-
-                foreach (string filePath in paths)
-                {
-                    FileInfo fileInfo = new FileInfo(Path.Combine(_dirInfo.FullName, filePath.Substring(1)));
-
-                    if (fileInfo.Exists)
-                    {
-                        ProcessFile(fileInfo, filePath, targetDir);
-                    }
-                }
+                PackageService.ExportFiles(fileName, namespaceTextBox.Text, _contentNode, _dirInfo.FullName);
             }
         }
 
-        private void ProcessFile(FileInfo fileInfo, string filePath, string targerPath)
-        {
-            targerPath = Path.Combine(targerPath, "content");
 
-            string directory = new FileInfo(Path.Combine(targerPath, filePath.Substring(1) + ".pp")).Directory.FullName;
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            FileInfo copy = fileInfo.CopyTo(Path.Combine(targerPath, filePath.Substring(1) + ".pp"), true);
-
-            //Process code files
-            if (fileInfo.Extension == ".cs"
-                || fileInfo.Extension == ".vb"
-                || fileInfo.Extension == ".aspx"
-                || fileInfo.Extension == ".cshtml"
-                || fileInfo.Extension == ".vbhtml")
-            {
-
-                string orignal = File.ReadAllText(copy.FullName);
-
-                string modified = orignal.Replace(namespaceTextBox.Text, "$rootnamespace$");
-
-                File.WriteAllText(copy.FullName, modified);
-            }
-
-
-
-
-        }
 
         private void treeView1_AfterExpand(object sender, TreeViewEventArgs e)
         {
