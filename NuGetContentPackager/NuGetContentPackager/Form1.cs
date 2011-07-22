@@ -28,7 +28,7 @@ namespace NuGetContentPackager
 
             if (args != null && args.Count() > 0)
             {
-                PackageService.LoadFile(new Uri(args[0]).AbsolutePath, _contentFileNameTemplate, _contentNode);
+                OpenFile(new Uri(args[0]).AbsolutePath);
             }
                        
         }
@@ -57,24 +57,31 @@ namespace NuGetContentPackager
             {
                 string selectedFileName = openFileDialog1.FileName;
 
-                 FileInfo fileInfo = new FileInfo(selectedFileName);
-
-                 if (fileInfo.Exists)
-                 {
-                     string fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-
-
-                     _dirInfo = fileInfo.Directory;
-                     saveFileDialog2.InitialDirectory = _dirInfo.FullName;
-                     namespaceTextBox.Text = fileName;
-                     _contentFileName = string.Format(_contentFileNameTemplate, fileName);
-                 }
-
-                 namespaceTextBox.Text = PackageService.LoadFile(selectedFileName, _contentFileNameTemplate, _contentNode);
-                treeView1.Nodes.Add(_contentNode);
-                _contentNode.Expand();
+                OpenFile(selectedFileName);
 
             }
+        }
+
+        private void OpenFile(string selectedFileName)
+        {
+            FileInfo fileInfo = new FileInfo(selectedFileName);
+
+            if (fileInfo.Exists)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
+
+
+                _dirInfo = fileInfo.Directory;
+                saveFileDialog2.InitialDirectory = _dirInfo.FullName;
+                namespaceTextBox.Text = fileName;
+                _contentFileName = string.Format(_contentFileNameTemplate, fileName);
+            }
+
+            _contentNode = new TreeNode();
+            namespaceTextBox.Text = PackageService.LoadFile(selectedFileName, _contentFileNameTemplate, _contentNode);
+            treeView1.Nodes.Clear();
+            treeView1.Nodes.Add(_contentNode);
+            _contentNode.Expand();
         }
 
      
