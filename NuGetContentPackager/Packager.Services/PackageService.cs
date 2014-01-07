@@ -14,6 +14,13 @@ namespace Packager.Services
     public class PackageService
     {
 
+        /// <summary>
+        /// Loads a project file and populates the content tree.
+        /// </summary>
+        /// <param name="selectedFileName">Name of the selected file.</param>
+        /// <param name="contentFileNameTemplate">The content file name template.</param>
+        /// <param name="contentNode">The content node.</param>
+        /// <returns></returns>
         public static string LoadFile(string selectedFileName, string contentFileNameTemplate, TreeNode contentNode)
         {
             var fileInfo = new FileInfo(selectedFileName);
@@ -52,6 +59,11 @@ namespace Packager.Services
             return ns;
         }
 
+        /// <summary>
+        /// Fills the paths. To be documented.
+        /// </summary>
+        /// <param name="paths">The paths.</param>
+        /// <param name="contentNode">The content node.</param>
         public static void FillPaths(List<string> paths, TreeNode contentNode)
         {
             if (contentNode.Checked)
@@ -67,19 +79,26 @@ namespace Packager.Services
         }
 
 
+        /// <summary>
+        /// Exports the files to the NuGet content directory.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="ns">The namespace to replace while creating nuget pre-processor files (.pp).</param>
+        /// <param name="contentNode">The content node.</param>
+        /// <param name="originalDir">The original dir.</param>
         public static void ExportFiles(string fileName, string ns, TreeNode contentNode, string originalDir)
         {
             var saveInfo = new FileInfo(fileName);
 
             if (saveInfo.Exists)
             {
-                string targetDir = saveInfo.DirectoryName;
+                var targetDir = saveInfo.DirectoryName;
 
                 var paths = new List<string>();
 
                 FillPaths(paths, contentNode);
 
-                foreach (string filePath in paths)
+                foreach (var filePath in paths)
                 {
                     var fileInfo = new FileInfo(Path.Combine(originalDir, filePath.Substring(1)));
 
@@ -88,11 +107,8 @@ namespace Packager.Services
                         ProcessFile(fileInfo, filePath, targetDir, ns);
 
                         Console.WriteLine("Export finished.");
-
                     }
                 }
-
-
             }
             else
             {
@@ -103,7 +119,7 @@ namespace Packager.Services
 
         private static void PopulateContentTreeView(TreeNode parent, DirectoryInfo directory)
         {
-            foreach (DirectoryInfo dir in directory.GetDirectories())
+            foreach (var dir in directory.GetDirectories())
             {
                 if (dir.Name.ToLower() != "bin"
                     && dir.Name.ToLower() != "obj")
@@ -121,7 +137,7 @@ namespace Packager.Services
 
             }
 
-            foreach (FileInfo f in directory.GetFiles())
+            foreach (var f in directory.GetFiles())
             {
                 var n = new TreeNode(f.Name);
 
@@ -185,17 +201,23 @@ namespace Packager.Services
             var copy = fileInfo.CopyTo(Path.Combine(targetPath, filePath.Substring(1) + ".pp"), true);
 
             //Process code files
-            if (fileInfo.Extension == ".cs"
-                || fileInfo.Extension == ".vb"
-                || fileInfo.Extension == ".aspx"
-                || fileInfo.Extension == ".cshtml"
-                || fileInfo.Extension == ".vbhtml")
+            switch (fileInfo.Extension)
             {
+                case ".cs":
+                case ".vb":
+                case ".aspx":
+                case ".cshtml":
+                case ".vbhtml":
 
-                var orignal = File.ReadAllText(copy.FullName);
-                var modified = orignal.Replace(ns, "$rootnamespace$");
+                    var orignal = File.ReadAllText(copy.FullName);
+                    var modified = orignal.Replace(ns, "$rootnamespace$");
 
-                File.WriteAllText(copy.FullName, modified);
+                    File.WriteAllText(copy.FullName, modified);
+
+                    break;
+
+                default:
+                    break;
             }
         }
     }

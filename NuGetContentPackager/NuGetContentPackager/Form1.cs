@@ -19,6 +19,11 @@ namespace NuGetContentPackager
         private const string ContentFileNameTemplate = "{0}.nupp";
         string _contentFileName = string.Empty;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Form1"/> class.
+        /// When any arguments are specified, the first is regarded to be the project file.
+        /// </summary>
+        /// <param name="args">The arguments.</param>
         public Form1(string[] args)
         {
             InitializeComponent();
