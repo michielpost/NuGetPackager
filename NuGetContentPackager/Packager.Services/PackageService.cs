@@ -13,31 +13,38 @@ namespace Packager.Services
         
         public static string LoadFile(string selectedFileName, string contentFileNameTemplate, TreeNode contentNode)
         {
-            FileInfo fileInfo = new FileInfo(selectedFileName);
+            var fileInfo = new FileInfo(selectedFileName);
 
-            string ns = string.Empty;
+            var ns = string.Empty;
 
-            if (fileInfo.Exists)
+            if (!fileInfo.Exists) return ns;
+
+            var xdoc = new XDocument();
+          
+            var fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
+          
+            var filePath = Path.Combine(fileInfo.Directory.FullName, string.Format(contentFileNameTemplate, fileName));
+            if (new FileInfo(filePath).Exists)
             {
-                XDocument xdoc = new XDocument();
+              xdoc = XDocument.Load(filePath);
 
-                string fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
+              var nugetppRootElement = xdoc.Element("nugetpp");
 
-
-
-                string filePath = Path.Combine(fileInfo.Directory.FullName, string.Format(contentFileNameTemplate, fileName));
-                if (new FileInfo(filePath).Exists)
-                {
-                    xdoc = XDocument.Load(filePath);
-
-                    ns = xdoc.Element("nugetpp").Element("namespace").Value;
-                }
-
-
-                PopulateContentTreeView(contentNode, fileInfo.Directory);
-
-                CheckNodes(xdoc, contentNode);
+              if (nugetppRootElement == null)
+              {
+                System.Diagnostics.Trace.TraceWarning("NugetPP file '{0}' did not contain root node 'nugetpp'.",
+                  filePath);
+              }
+              else
+              {
+                ns = nugetppRootElement.Element("namespace").Value;
+              }
             }
+
+
+            PopulateContentTreeView(contentNode, fileInfo.Directory);
+
+            CheckNodes(xdoc, contentNode);
 
             return ns;
         }
@@ -125,14 +132,16 @@ namespace Packager.Services
         
         private static void CheckNodes(XDocument xdoc, TreeNode contentNode)
         {
-            if (xdoc != null && xdoc.Element("nugetpp").Element("files").Elements("file").Where(x => x.Value == FullPath(contentNode, false)).Any())
+          if (xdoc != null
+              && xdoc.Element("nugetpp") != null
+              && xdoc.Element("nugetpp").Element("files") != null
+              && xdoc.Element("nugetpp").Element("files").Elements("file")!=null
+              && xdoc.Element("nugetpp").Element("files").Elements("file").Any(x => x.Value == FullPath(contentNode, false)))
             {
                 contentNode.Checked = true;
 
                 if (contentNode.Parent != null)
                     contentNode.Parent.Expand();
-
-
             }
             else
             {

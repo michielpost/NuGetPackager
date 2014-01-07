@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml.Linq;
@@ -16,10 +12,8 @@ namespace NuGetContentPackager
     {
         TreeNode _contentNode = new TreeNode("Content");
         DirectoryInfo _dirInfo;
-        string _contentFileNameTemplate = "{0}.nupp";
+        private const string ContentFileNameTemplate = "{0}.nupp";
         string _contentFileName = string.Empty;
-
-
 
         public Form1(string[] args)
         {
@@ -64,7 +58,7 @@ namespace NuGetContentPackager
 
         private void OpenFile(string selectedFileName)
         {
-            FileInfo fileInfo = new FileInfo(selectedFileName);
+            var fileInfo = new FileInfo(selectedFileName);
 
             if (fileInfo.Exists)
             {
@@ -74,11 +68,11 @@ namespace NuGetContentPackager
                 _dirInfo = fileInfo.Directory;
                 saveFileDialog2.InitialDirectory = _dirInfo.FullName;
                 namespaceTextBox.Text = fileName;
-                _contentFileName = string.Format(_contentFileNameTemplate, fileName);
+                _contentFileName = string.Format(ContentFileNameTemplate, fileName);
             }
 
             _contentNode = new TreeNode();
-            namespaceTextBox.Text = PackageService.LoadFile(selectedFileName, _contentFileNameTemplate, _contentNode);
+            namespaceTextBox.Text = PackageService.LoadFile(selectedFileName, ContentFileNameTemplate, _contentNode);
             treeView1.Nodes.Clear();
             treeView1.Nodes.Add(_contentNode);
             _contentNode.Expand();
