@@ -198,9 +198,10 @@ namespace Packager.Services
                 Directory.CreateDirectory(directory);
             }
 
-            var copy = fileInfo.CopyTo(Path.Combine(targetPath, filePath.Substring(1) + ".pp"), true);
+            var newFileExtension = "pp";
+            var replaceContent = false;
 
-            //Process code files
+            //Determine possible new file extension and whether content should be replaced
             switch (fileInfo.Extension)
             {
                 case ".cs":
@@ -209,16 +210,37 @@ namespace Packager.Services
                 case ".cshtml":
                 case ".vbhtml":
 
-                    var orignal = File.ReadAllText(copy.FullName);
-                    var modified = orignal.Replace(ns, "$rootnamespace$");
+                    replaceContent = true;
+                    break;
 
-                    File.WriteAllText(copy.FullName, modified);
+                case ".config":
+
+                    newFileExtension = "transform";
+                    replaceContent = true;
 
                     break;
 
                 default:
                     break;
             }
+
+
+            //Only alter filename when content is to be replaced
+            if (!replaceContent)
+            {
+                fileInfo.CopyTo(Path.Combine(targetPath, filePath.Substring(1)), true);
+                return;
+            }
+
+            //Copy to new location
+            var copy = fileInfo.CopyTo(
+                Path.Combine(targetPath, filePath.Substring(1) + "." + newFileExtension), true);
+
+            //Replace content
+            var orignal = File.ReadAllText(copy.FullName);
+            var modified = orignal.Replace(ns, "$rootnamespace$");
+
+            File.WriteAllText(copy.FullName, modified);
         }
     }
 }
