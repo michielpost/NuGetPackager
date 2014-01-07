@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
-using System.Deployment.Application;
-using System.Web;
 
 namespace NuGetContentPackager
 {
+    /// <summary>
+    /// Initiates the startup of <see cref="Form1"/>
+    /// </summary>
     static class Program
     {
         /// <summary>

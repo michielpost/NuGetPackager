@@ -8,6 +8,10 @@ using Packager.Services;
 
 namespace NuGetContentPackager
 {
+    /// <summary>
+    /// Main form for editing or creating .nupp files.
+    /// Also initiates copying of source files.
+    /// </summary>
     public partial class Form1 : Form
     {
         TreeNode _contentNode = new TreeNode("Content");
@@ -19,37 +23,30 @@ namespace NuGetContentPackager
         {
             InitializeComponent();
 
-
-            if (args != null && args.Count() > 0)
+            if (args != null && args.Any())
             {
                 OpenFile(new Uri(args[0]).AbsolutePath);
             }
-                       
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            
+
         }
 
         private void treeView1_AfterCheck(object sender, TreeViewEventArgs e)
         {
-           
-                foreach (var node in e.Node.Nodes)
-                {
-                    TreeNode tnode = node as TreeNode;
-
-                    if (tnode != null)
-                        tnode.Checked = e.Node.Checked;
-                }
+            foreach (var tnode in e.Node.Nodes.OfType<TreeNode>())
+            {
+                tnode.Checked = e.Node.Checked;
+            }
         }
 
         private void openButton_Click(object sender, EventArgs e)
         {
-
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                string selectedFileName = openFileDialog1.FileName;
+                var selectedFileName = openFileDialog1.FileName;
 
                 OpenFile(selectedFileName);
 
@@ -62,8 +59,7 @@ namespace NuGetContentPackager
 
             if (fileInfo.Exists)
             {
-                string fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-
+                var fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
 
                 _dirInfo = fileInfo.Directory;
                 saveFileDialog2.InitialDirectory = _dirInfo.FullName;
@@ -78,18 +74,18 @@ namespace NuGetContentPackager
             _contentNode.Expand();
         }
 
-     
+
         private void saveButton_Click(object sender, EventArgs e)
         {
-            List<string> paths = new List<string>();
+            var paths = new List<string>();
 
             PackageService.FillPaths(paths, _contentNode);
 
-            XDocument xdoc = new XDocument();
-            XElement nugetpp = new XElement("nugetpp");
+            var xdoc = new XDocument();
+            var nugetpp = new XElement("nugetpp");
 
-            XElement files = new XElement("files");
-            foreach (string path in paths)
+            var files = new XElement("files");
+            foreach (var path in paths)
             {
                 files.Add(new XElement("file", path));
             }
@@ -101,28 +97,22 @@ namespace NuGetContentPackager
 
             if (_dirInfo != null)
             {
-
                 xdoc.Save(Path.Combine(_dirInfo.FullName, _contentFileName));
             }
-
         }
-
-       
 
         private void exportButton_Click(object sender, EventArgs e)
         {
-            if (saveFileDialog2.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (saveFileDialog2.ShowDialog() == DialogResult.OK)
             {
-                string fileName = saveFileDialog2.FileName;
+                var fileName = saveFileDialog2.FileName;
 
-                FileInfo saveInfo = new FileInfo(fileName);
+                var saveInfo = new FileInfo(fileName);
                 saveFileDialog2.InitialDirectory = saveInfo.DirectoryName;
 
                 PackageService.ExportFiles(fileName, namespaceTextBox.Text, _contentNode, _dirInfo.FullName);
             }
         }
-
-
 
         private void treeView1_AfterExpand(object sender, TreeViewEventArgs e)
         {
@@ -131,7 +121,5 @@ namespace NuGetContentPackager
                 e.Node.Parent.Expand();
             }
         }
-
-       
     }
 }

@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Xml.Linq;
 using System.Windows.Forms;
 
 namespace Packager.Services
 {
+    /// <summary>
+    /// The main engine for copying source files to the NuGet target directory.
+    /// Also create .nupp project files
+    /// </summary>
     public class PackageService
     {
-        
+
         public static string LoadFile(string selectedFileName, string contentFileNameTemplate, TreeNode contentNode)
         {
             var fileInfo = new FileInfo(selectedFileName);
@@ -20,25 +23,25 @@ namespace Packager.Services
             if (!fileInfo.Exists) return ns;
 
             var xdoc = new XDocument();
-          
+
             var fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-          
+
             var filePath = Path.Combine(fileInfo.Directory.FullName, string.Format(contentFileNameTemplate, fileName));
             if (new FileInfo(filePath).Exists)
             {
-              xdoc = XDocument.Load(filePath);
+                xdoc = XDocument.Load(filePath);
 
-              var nugetppRootElement = xdoc.Element("nugetpp");
+                var nugetppRootElement = xdoc.Element("nugetpp");
 
-              if (nugetppRootElement == null)
-              {
-                System.Diagnostics.Trace.TraceWarning("NugetPP file '{0}' did not contain root node 'nugetpp'.",
-                  filePath);
-              }
-              else
-              {
-                ns = nugetppRootElement.Element("namespace").Value;
-              }
+                if (nugetppRootElement == null)
+                {
+                    System.Diagnostics.Trace.TraceWarning("NugetPP file '{0}' did not contain root node 'nugetpp'.",
+                      filePath);
+                }
+                else
+                {
+                    ns = nugetppRootElement.Element("namespace").Value;
+                }
             }
 
 
@@ -58,7 +61,7 @@ namespace Packager.Services
 
             foreach (var n in contentNode.Nodes)
             {
-                TreeNode node = n as TreeNode;
+                var node = n as TreeNode;
                 FillPaths(paths, node);
             }
         }
@@ -66,19 +69,19 @@ namespace Packager.Services
 
         public static void ExportFiles(string fileName, string ns, TreeNode contentNode, string originalDir)
         {
-            FileInfo saveInfo = new FileInfo(fileName);
+            var saveInfo = new FileInfo(fileName);
 
             if (saveInfo.Exists)
             {
                 string targetDir = saveInfo.DirectoryName;
 
-                List<string> paths = new List<string>();
+                var paths = new List<string>();
 
                 FillPaths(paths, contentNode);
 
                 foreach (string filePath in paths)
                 {
-                    FileInfo fileInfo = new FileInfo(Path.Combine(originalDir, filePath.Substring(1)));
+                    var fileInfo = new FileInfo(Path.Combine(originalDir, filePath.Substring(1)));
 
                     if (fileInfo.Exists)
                     {
@@ -96,8 +99,8 @@ namespace Packager.Services
                 Console.WriteLine("NuGet package file does not exist");
             }
         }
-        
-        
+
+
         private static void PopulateContentTreeView(TreeNode parent, DirectoryInfo directory)
         {
             foreach (DirectoryInfo dir in directory.GetDirectories())
@@ -105,9 +108,11 @@ namespace Packager.Services
                 if (dir.Name.ToLower() != "bin"
                     && dir.Name.ToLower() != "obj")
                 {
-                    TreeNode node = new TreeNode(dir.Name);
+                    var node = new TreeNode(dir.Name)
+                    {
+                        Tag = dir
+                    };
 
-                    node.Tag = dir;
                     PopulateContentTreeView(node, dir);
 
                     if (node.Nodes.Count > 0)
@@ -118,7 +123,7 @@ namespace Packager.Services
 
             foreach (FileInfo f in directory.GetFiles())
             {
-                TreeNode n = new TreeNode(f.Name);
+                var n = new TreeNode(f.Name);
 
                 if (!f.Name.ToLower().EndsWith(".dll"))
                 {
@@ -129,27 +134,25 @@ namespace Packager.Services
                 //(n.Tag as NugetPackageFile).PackageFile = n.FullPath;
             }
         }
-        
+
         private static void CheckNodes(XDocument xdoc, TreeNode contentNode)
         {
-          if (xdoc != null
-              && xdoc.Element("nugetpp") != null
-              && xdoc.Element("nugetpp").Element("files") != null
-              && xdoc.Element("nugetpp").Element("files").Elements("file")!=null
-              && xdoc.Element("nugetpp").Element("files").Elements("file").Any(x => x.Value == FullPath(contentNode, false)))
+            //to: Cleanup or convert to XPath
+            if (xdoc != null
+                && xdoc.Element("nugetpp") != null
+                && xdoc.Element("nugetpp").Element("files") != null
+                && xdoc.Element("nugetpp").Element("files").Elements("file") != null
+                && xdoc.Element("nugetpp").Element("files").Elements("file").Any(x => x.Value == FullPath(contentNode, false)))
             {
                 contentNode.Checked = true;
 
                 if (contentNode.Parent != null)
                     contentNode.Parent.Expand();
             }
-            else
-            {
-            }
 
             foreach (var n in contentNode.Nodes)
             {
-                TreeNode node = n as TreeNode;
+                var node = n as TreeNode;
                 CheckNodes(xdoc, node);
             }
         }
@@ -160,26 +163,26 @@ namespace Packager.Services
             {
                 return FullPath(node.Parent, includeParent) + "\\" + node.Text;
             }
-            else
+
+            if (includeParent)
             {
-                if (includeParent)
-                    return "\\" + node.Text;
-                else
-                    return string.Empty;
+                return "\\" + node.Text;
             }
+
+            return string.Empty;
         }
 
-        private static void ProcessFile(FileInfo fileInfo, string filePath, string targerPath, string ns)
+        private static void ProcessFile(FileInfo fileInfo, string filePath, string targetPath, string ns)
         {
-            targerPath = Path.Combine(targerPath, "content");
+            targetPath = Path.Combine(targetPath, "content");
 
-            string directory = new FileInfo(Path.Combine(targerPath, filePath.Substring(1) + ".pp")).Directory.FullName;
+            var directory = new FileInfo(Path.Combine(targetPath, filePath.Substring(1) + ".pp")).Directory.FullName;
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
 
-            FileInfo copy = fileInfo.CopyTo(Path.Combine(targerPath, filePath.Substring(1) + ".pp"), true);
+            var copy = fileInfo.CopyTo(Path.Combine(targetPath, filePath.Substring(1) + ".pp"), true);
 
             //Process code files
             if (fileInfo.Extension == ".cs"
@@ -189,20 +192,11 @@ namespace Packager.Services
                 || fileInfo.Extension == ".vbhtml")
             {
 
-                string orignal = File.ReadAllText(copy.FullName);
-
-                string modified = orignal.Replace(ns, "$rootnamespace$");
+                var orignal = File.ReadAllText(copy.FullName);
+                var modified = orignal.Replace(ns, "$rootnamespace$");
 
                 File.WriteAllText(copy.FullName, modified);
             }
-
-
-
-
         }
-        
-       
-
-       
     }
 }

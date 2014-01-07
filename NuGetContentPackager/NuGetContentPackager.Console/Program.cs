@@ -1,39 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Packager.Services;
 using System.IO;
 using System.Windows.Forms;
 
 namespace NuGetContentPackagerConsole
 {
+    /// <summary>
+    /// Console application for copying input files to a nuget package directory based on a .nupp configuration file.
+    /// </summary>
     class Program
     {
-        static string _contentFileNameTemplate = "{0}.nupp";
+        private const string ContentFileNameTemplate = "{0}.nupp";
 
         static void Main(string[] args)
         {
             if (args != null && args.Count() > 1)
             {
-                string selectedFileName = args[0];
+                var selectedFileName = args[0];
 
-                FileInfo fileInfo = new FileInfo(selectedFileName);
+                var fileInfo = new FileInfo(selectedFileName);
 
                 if (fileInfo.Exists)
                 {
-                    string fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-                    string ccontentFileName = string.Format(_contentFileNameTemplate, fileName);
+                    var fileName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
+                    //string ccontentFileName = string.Format(_contentFileNameTemplate, fileName);
 
-                    TreeNode _contentNode = new TreeNode("Content");
-                    string ns = PackageService.LoadFile(selectedFileName, _contentFileNameTemplate, _contentNode);
-
+                    var _contentNode = new TreeNode("Content");
+                    var ns = PackageService.LoadFile(selectedFileName, ContentFileNameTemplate, _contentNode);
 
                     PackageService.ExportFiles(args[1], ns, _contentNode, fileInfo.Directory.FullName);
-
                 }
-
-
             }
             else
             {
@@ -42,7 +39,6 @@ namespace NuGetContentPackagerConsole
             }
 
             Console.ReadLine();
-          
         }
     }
 }
