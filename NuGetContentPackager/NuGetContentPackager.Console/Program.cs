@@ -1,10 +1,10 @@
-﻿using System;
+﻿using System.IO;
 using System.Linq;
-using Packager.Services;
-using System.IO;
 using System.Windows.Forms;
+using NuGetContentPackagerConsole;
+using Packager.Services;
 
-namespace NuGetContentPackagerConsole
+namespace NuGetContentPackager.Console
 {
     /// <summary>
     /// Console application for copying input files to a nuget package directory based on a .nupp configuration file.
@@ -29,16 +29,19 @@ namespace NuGetContentPackagerConsole
                     var _contentNode = new TreeNode("Content");
                     var ns = PackageService.LoadFile(selectedFileName, ContentFileNameTemplate, _contentNode);
 
-                    Console.CursorVisible = false;
+                    if (!ConsoleExtensions.IsOutputRedirected) System.Console.CursorVisible = false;
+
                     PackageService.ExportFiles(args[1], ns, _contentNode, fileInfo.Directory.FullName);
-                    Console.CursorVisible = true;
+
+                    if (!ConsoleExtensions.IsOutputRedirected) System.Console.CursorVisible = true;
                 }
             }
-            else
+            else if (!ConsoleExtensions.IsOutputRedirected)
             {
-                Console.WriteLine("Input nupp file as source and nupkg or nuspec file as target.");
-                Console.WriteLine("NuGetContentPackager.Console.exe {nupp} {nuspec}");
+                System.Console.WriteLine("Input nupp file as source and nupkg or nuspec file as target.");
+                System.Console.WriteLine("NuGetContentPackager.Console.exe {nupp} {nuspec}");
             }
+
 
             //Console.ReadLine();
         }

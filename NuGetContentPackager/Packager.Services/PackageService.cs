@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 using System.Xml.Linq;
 using System.Windows.Forms;
+using NuGetContentPackagerConsole;
 
 namespace Packager.Services
 {
@@ -13,7 +14,6 @@ namespace Packager.Services
     /// </summary>
     public class PackageService
     {
-
         /// <summary>
         /// Loads a project file and populates the content tree.
         /// </summary>
@@ -98,8 +98,11 @@ namespace Packager.Services
 
                 FillPaths(paths, contentNode);
 
-                Console.WriteLine("Starting export");
-                Console.WriteLine();
+                if (!ConsoleExtensions.IsOutputRedirected)
+                {
+                    Console.WriteLine("Starting export");
+                    Console.WriteLine();
+                }
 
                 var pathCount = paths.Count();
                 for (var i = 0; i < pathCount; i++)
@@ -114,17 +117,32 @@ namespace Packager.Services
 
                     var percentage = ((i+1) * 100) / pathCount;
 
-                    ConsoleUtililies.RenderConsoleProgress(percentage, message: String.Format("Copying files : {0,3}% ({1,3}/{2,3})", percentage,i+1, pathCount));
+                    if (!ConsoleExtensions.IsOutputRedirected)
+                    {
+                        ConsoleUtililies.RenderConsoleProgress(percentage,
+                            message: String.Format("Copying files : {0,3}% ({1,3}/{2,3})", percentage, i + 1, pathCount));
+                    }
                 }
 
-                Console.WriteLine();
-                Console.WriteLine();
-                Console.WriteLine();
-                Console.WriteLine("Export finished.");
+                if (!ConsoleExtensions.IsOutputRedirected)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine("Export finished.");
+                }
             }
             else
             {
-                Console.WriteLine("NuGet package file does not exist");
+                try
+                {
+                    Console.WriteLine("NuGet package file does not exist");
+                }
+                catch
+                {
+                    //Ignore
+                }
+                Environment.ExitCode = 1; //Indicates error
             }
         }
 

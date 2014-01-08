@@ -50,6 +50,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Packager.Services\ConsoleExtensions.cs">
+      <Link>ConsoleExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\Packager.Services\ConsoleUtililies.cs">
       <Link>ConsoleUtililies.cs</Link>
     </Compile>
