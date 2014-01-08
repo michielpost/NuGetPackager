@@ -29,7 +29,9 @@ namespace NuGetContentPackagerConsole
                     var _contentNode = new TreeNode("Content");
                     var ns = PackageService.LoadFile(selectedFileName, ContentFileNameTemplate, _contentNode);
 
+                    Console.CursorVisible = false;
                     PackageService.ExportFiles(args[1], ns, _contentNode, fileInfo.Directory.FullName);
+                    Console.CursorVisible = true;
                 }
             }
             else
@@ -38,7 +40,7 @@ namespace NuGetContentPackagerConsole
                 Console.WriteLine("NuGetContentPackager.Console.exe {nupp} {nuspec}");
             }
 
-            Console.ReadLine();
+            //Console.ReadLine();
         }
     }
 }

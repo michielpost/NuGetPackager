@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleUtililies.cs" />
     <Compile Include="PackageService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

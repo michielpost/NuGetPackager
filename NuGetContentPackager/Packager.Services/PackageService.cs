@@ -43,7 +43,7 @@ namespace Packager.Services
                 if (nugetppRootElement == null)
                 {
                     System.Diagnostics.Trace.TraceWarning("NugetPP file '{0}' did not contain root node 'nugetpp'.",
-                      filePath);
+                        filePath);
                 }
                 else
                 {
@@ -98,17 +98,29 @@ namespace Packager.Services
 
                 FillPaths(paths, contentNode);
 
-                foreach (var filePath in paths)
+                Console.WriteLine("Starting export");
+                Console.WriteLine();
+
+                var pathCount = paths.Count();
+                for (var i = 0; i < pathCount; i++)
                 {
+                    var filePath = paths[i];
                     var fileInfo = new FileInfo(Path.Combine(originalDir, filePath.Substring(1)));
 
                     if (fileInfo.Exists)
                     {
                         ProcessFile(fileInfo, filePath, targetDir, ns);
-
-                        Console.WriteLine("Export finished.");
                     }
+
+                    var percentage = ((i+1) * 100) / pathCount;
+
+                    ConsoleUtililies.RenderConsoleProgress(percentage, message: String.Format("Copying files : {0,3}% ({1,3}/{2,3})", percentage,i+1, pathCount));
                 }
+
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine("Export finished.");
             }
             else
             {
@@ -158,7 +170,11 @@ namespace Packager.Services
                 && xdoc.Element("nugetpp") != null
                 && xdoc.Element("nugetpp").Element("files") != null
                 && xdoc.Element("nugetpp").Element("files").Elements("file") != null
-                && xdoc.Element("nugetpp").Element("files").Elements("file").Any(x => x.Value == FullPath(contentNode, false)))
+                &&
+                xdoc.Element("nugetpp")
+                    .Element("files")
+                    .Elements("file")
+                    .Any(x => x.Value == FullPath(contentNode, false)))
             {
                 contentNode.Checked = true;
 
