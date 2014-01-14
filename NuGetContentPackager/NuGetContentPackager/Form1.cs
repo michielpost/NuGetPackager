@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml.Linq;
+using NuGetContentPackager.Properties;
 using Packager.Services;
 
 namespace NuGetContentPackager
@@ -115,7 +116,14 @@ namespace NuGetContentPackager
                 var saveInfo = new FileInfo(fileName);
                 saveFileDialog2.InitialDirectory = saveInfo.DirectoryName;
 
+              try
+              {
                 PackageService.ExportFiles(fileName, namespaceTextBox.Text, _contentNode, _dirInfo.FullName);
+              }
+              catch (Exception ex)
+              {
+                MessageBox.Show(ex.Message,Resources.Export_Exception_Caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+              }
             }
         }
 
