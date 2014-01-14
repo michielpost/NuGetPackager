@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Xml.Linq;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using NuGetContentPackagerConsole;
 
 namespace Packager.Services
@@ -86,7 +86,9 @@ namespace Packager.Services
         /// <param name="ns">The namespace to replace while creating nuget pre-processor files (.pp).</param>
         /// <param name="contentNode">The content node.</param>
         /// <param name="originalDir">The original dir.</param>
-        public static void ExportFiles(string fileName, string ns, TreeNode contentNode, string originalDir)
+        /// <param name="renderConsoleProgress">if set to <c>true</c> renders progress to the console.</param>
+        /// <exception cref="System.Exception">NuGet package file does not exist</exception>
+        public static void ExportFiles(string fileName, string ns, TreeNode contentNode, string originalDir, bool renderConsoleProgress = false)
         {
             var saveInfo = new FileInfo(fileName);
 
@@ -98,27 +100,43 @@ namespace Packager.Services
 
                 FillPaths(paths, contentNode);
 
-                if (!ConsoleExtensions.IsOutputRedirected)
-                {
-                    Console.WriteLine("Starting export");
-                    Console.WriteLine();
-                }
+                Console.WriteLine("Starting export");
+                if (!ConsoleExtensions.IsOutputRedirected) Console.WriteLine();
 
                 var pathCount = paths.Count();
+                var copyCount = 0;
                 for (var i = 0; i < pathCount; i++)
                 {
                     var filePath = paths[i];
                     var fileInfo = new FileInfo(Path.Combine(originalDir, filePath.Substring(1)));
-
+                  
                     if (fileInfo.Exists)
                     {
                         ProcessFile(fileInfo, filePath, targetDir, ns);
+                        copyCount++;
+                    }
+                    else
+                    {
+                        var di = new DirectoryInfo(Path.Combine(originalDir, filePath.Substring(1)));
+
+                        if (!di.Exists)
+                        {
+                          Console.Error.WriteLine("Directory or file does not exist at {0}", filePath);
+                          Environment.ExitCode = 1; //Indicates error 
+                        }
                     }
 
-                    var percentage = ((i+1) * 100) / pathCount;
-
-                    if (!ConsoleExtensions.IsOutputRedirected)
+                    if (!renderConsoleProgress)
                     {
+                        //Do not render progress
+                    }
+                    else if (ConsoleExtensions.IsOutputRedirected)
+                    {
+                        Console.Write(".");
+                    } else  
+                    {
+                        //Progress rendering modifies the cursor position, do not perform when output is redirected.
+                        var percentage = ((i + 1) * 100) / pathCount;
                         ConsoleUtililies.RenderConsoleProgress(percentage,
                             message: String.Format("Copying files : {0,3}% ({1,3}/{2,3})", percentage, i + 1, pathCount));
                     }
@@ -128,21 +146,14 @@ namespace Packager.Services
                 {
                     Console.WriteLine();
                     Console.WriteLine();
-                    Console.WriteLine();
-                    Console.WriteLine("Export finished.");
                 }
+                Console.WriteLine();
+
+                Console.WriteLine("Export finished, {0} file were processed.", copyCount);
             }
             else
             {
-                try
-                {
-                    Console.WriteLine("NuGet package file does not exist");
-                }
-                catch
-                {
-                    //Ignore
-                }
-                Environment.ExitCode = 1; //Indicates error
+              throw new Exception("NuGet package file does not exist");
             }
         }
 
