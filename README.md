@@ -1,13 +1,12 @@
 # NuGetPackager
 
 Imported from CodePlex: https://nugetpackager.codeplex.com/
+
+*Project Description*
 The NuGet Source Code Packager allows you to select the source code files you want to copy to the content directory for your NuGet package.
 
 The files are copied and renamed to the .pp extension for NuGet pre-processing. The root namespace is also replaced with $rootnamespace$
 
-
-*Project Description*
-{project:description}
 
 - Select your VS Project
 - Select the source code files you want to include in your NuGet package
