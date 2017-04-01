@@ -14,4 +14,4 @@ The files are copied and renamed to the .pp extension for NuGet pre-processing. 
 - Let the NuGet Source Code Packager process your sourcode files
 - Click Once application, not installation needed and automatic updates.
 
-[image:screenshot.jpg]
+![screenshot](nugetsourcecodepackager.jpg)
